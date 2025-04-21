@@ -7,6 +7,7 @@ import constants from "expo-constants";
 export interface PushNotificationState {
   notification?: Notifications.Notification;
   expoPushToken?: Notifications.ExpoPushToken;
+  channels?: Notifications.NotificationChannel[];
 }
 
 export const usePushNotifications = () => {
@@ -23,6 +24,10 @@ export const usePushNotifications = () => {
   const [notification, setNotification] = useState<
     Notifications.Notification | undefined
   >();
+  const [channels, setChannels] = useState<Notifications.NotificationChannel[]>(
+    []
+  );
+
   const notificationListener = useRef<Notifications.EventSubscription>();
   const responseListener = useRef<Notifications.EventSubscription>();
 
@@ -71,7 +76,11 @@ export const usePushNotifications = () => {
       Notifications.addNotificationResponseReceivedListener((response) => {
         console.log(response);
       });
-
+    if (Platform.OS === "android") {
+      Notifications.getNotificationChannelsAsync().then((value) =>
+        setChannels(value ?? [])
+      );
+    }
     return () => {
       Notifications.removeNotificationSubscription(
         notificationListener.current!
@@ -83,5 +92,6 @@ export const usePushNotifications = () => {
   return {
     expoPushToken,
     notification,
+    channels,
   } as PushNotificationState;
 };
